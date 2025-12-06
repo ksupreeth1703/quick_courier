@@ -154,7 +154,7 @@ def dashboard(request):
 def send_email_sns(subject, message,name, amount):
     SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:114224740138:cpp-sns-x24108863"
     
-    full_message = f"""Enquiry details:\n
+    full_message = f"""Payment details:\n
         Name: {name}\n
         Amount: {amount}\n
         Message: {message}\n
