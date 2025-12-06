@@ -1,0 +1,79 @@
+{% extends 'courier_app/base.html' %}
+
+{% block title %}All Payments{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Payment Management</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">All Payments</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Parcel</th>
+                        <th>Sender</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td>{{ payment.transaction_id|default:"N/A" }}</td>
+                        <td>{{ payment.parcel.tracking_number }}</td>
+                        <td>{{ payment.parcel.sender.username }}</td>
+                        <td>${{ payment.amount }}</td>
+                        <td>{{ payment.get_payment_method_display }}</td>
+                        <td>
+                            {% if payment.payment_status == 'completed' %}
+                            <span class="badge bg-success">Completed</span>
+                            {% elif payment.payment_status == 'pending' %}
+                            <span class="badge bg-warning">Pending</span>
+                            {% else %}
+                            <span class="badge bg-danger">{{ payment.get_payment_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ payment.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'parcel_detail' payment.parcel.pk %}" class="btn btn-sm btn-info">View Parcel</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6>Payment Summary</h6>
+                        {% with total=payments.count completed=payments.filter|payment_status:'completed' %}
+                        <p class="mb-1">Total Payments: {{ total }}</p>
+                        <p class="mb-1">Completed: {{ completed|length }}</p>
+                        <p class="mb-1">Pending: {{ payments.filter|payment_status:'pending'|length }}</p>
+                        {% with total_amount=0 %}
+                        {% for payment in completed %}
+                        {% with total_amount=total_amount|add:payment.amount %}
+                        {% endwith %}
+                        {% endfor %}
+                        <p class="mb-0">Total Revenue: ${{ total_amount|floatformat:2 }}</p>
+                        {% endwith %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

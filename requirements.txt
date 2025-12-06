@@ -1,0 +1,7 @@
+parcel-details-export
+django
+boto3
+reportlab
+requests
+psycopg-binary
+pillow

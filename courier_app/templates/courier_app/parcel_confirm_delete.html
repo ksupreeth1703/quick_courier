@@ -1,0 +1,30 @@
+{% extends 'courier_app/base.html' %}
+
+{% block title %}Delete Parcel{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0 text-danger">Delete Parcel</h4>
+            </div>
+            <div class="card-body text-center">
+                <div style="font-size: 4rem;" class="text-danger mb-3">🗑️</div>
+                <h5>Are you sure you want to delete this parcel?</h5>
+                <p class="text-muted">Parcel: <strong>{{ parcel.tracking_number }}</strong></p>
+                <p class="text-muted">Receiver: {{ parcel.receiver_name }}</p>
+                <p class="text-muted">Status: {{ parcel.get_status_display }}</p>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-danger">Yes, Delete Parcel</button>
+                        <a href="{% url 'parcel_detail' parcel.pk %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

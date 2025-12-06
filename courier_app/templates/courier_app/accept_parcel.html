@@ -1,0 +1,40 @@
+{% extends 'courier_app/base.html' %}
+
+{% block title %}Accept Parcel{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Accept Parcel for Delivery</h4>
+            </div>
+            <div class="card-body text-center">
+                <div style="font-size: 4rem;" class="text-warning mb-3">🚚</div>
+                <h5>Accept Parcel #{{ parcel.tracking_number }}?</h5>
+                
+                <div class="text-start my-4">
+                    <p><strong>Sender:</strong> {{ parcel.sender.get_full_name|default:parcel.sender.username }}</p>
+                    <p><strong>Receiver:</strong> {{ parcel.receiver_name }}</p>
+                    <p><strong>Receiver Address:</strong> {{ parcel.receiver_address }}</p>
+                    <p><strong>Parcel Type:</strong> {{ parcel.get_parcel_type_display }}</p>
+                    <p><strong>Weight:</strong> {{ parcel.weight }} kg</p>
+                </div>
+                
+                <div class="alert alert-info">
+                    <h6>📝 Note</h6>
+                    <p class="mb-0">By accepting this parcel, you will be responsible for picking it up from the sender and delivering it to the receiver.</p>
+                </div>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-warning">Yes, Accept Parcel</button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

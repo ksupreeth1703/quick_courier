@@ -1,0 +1,223 @@
+{% extends 'courier_app/base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Admin Dashboard</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Parcels</h6>
+                        <h2 class="mb-0">{{ total_parcels }}</h2>
+                    </div>
+                    <div>
+                        <span style="font-size: 2rem;">📦</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Users</h6>
+                        <h2 class="mb-0">{{ total_users }}</h2>
+                    </div>
+                    <div>
+                        <span style="font-size: 2rem;">👥</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Delivery Persons</h6>
+                        <h2 class="mb-0">{{ total_delivery }}</h2>
+                    </div>
+                    <div>
+                        <span style="font-size: 2rem;">🚚</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Revenue</h6>
+                        <h2 class="mb-0">${{ total_revenue|floatformat:2 }}</h2>
+                    </div>
+                    <div>
+                        <span style="font-size: 2rem;">💰</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Parcel Status Overview</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for status, count in status_counts.items %}
+                        <tr>
+                            <td>{{ status }}</td>
+                            <td>{{ count }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {% widthratio count total_parcels 100 %}%">
+                                    </div>
+                                </div>
+                                <small>{% widthratio count total_parcels 100 %}%</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Payments</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in recent_payments %}
+                            <tr>
+                                <td>{{ payment.transaction_id|truncatechars:10 }}</td>
+                                <td>${{ payment.amount }}</td>
+                                <td>{{ payment.payment_date|date:"M d" }}</td>
+                                <td><span class="badge bg-success">Completed</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Parcels</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tracking #</th>
+                                <th>Sender</th>
+                                <th>Receiver</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for parcel in recent_parcels %}
+                            <tr>
+                                <td>{{ parcel.tracking_number }}</td>
+                                <td>{{ parcel.sender.username }}</td>
+                                <td>{{ parcel.receiver_name }}</td>
+                                <td>{{ parcel.get_parcel_type_display }}</td>
+                                <td><span class="status-badge status-{{ parcel.status }}">{{ parcel.get_status_display }}</span></td>
+                                <td>{{ parcel.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'parcel_detail' parcel.pk %}" class="btn btn-sm btn-info">View</a>
+                                    <a href="{% url 'update_parcel' parcel.pk %}" class="btn btn-sm btn-primary">Edit</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5>Quick Links</h5>
+                <div class="row text-center mt-3">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin_users' %}" class="btn btn-outline-primary w-100 py-3">
+                            <div style="font-size: 2rem;">👥</div>
+                            <div>Manage Users</div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin_parcels' %}" class="btn btn-outline-info w-100 py-3">
+                            <div style="font-size: 2rem;">📦</div>
+                            <div>All Parcels</div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin_payments' %}" class="btn btn-outline-success w-100 py-3">
+                            <div style="font-size: 2rem;">💰</div>
+                            <div>All Payments</div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-warning w-100 py-3">
+                            <div style="font-size: 2rem;">📊</div>
+                            <div>User Dashboard</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

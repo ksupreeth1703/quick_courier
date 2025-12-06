@@ -1,0 +1,174 @@
+{% extends 'courier_app/base.html' %}
+
+{% block title %}Make Payment{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Payment for Parcel #{{ parcel.tracking_number }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6>Parcel Details</h6>
+                                <p class="mb-1"><strong>Receiver:</strong> {{ parcel.receiver_name }}</p>
+                                <p class="mb-1"><strong>Weight:</strong> {{ parcel.weight }} kg</p>
+                                <p class="mb-1"><strong>Type:</strong> {{ parcel.get_parcel_type_display }}</p>
+                                <p class="mb-1"><strong>Dimensions:</strong> {{ parcel.dimensions }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6>Payment Summary</h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td>Shipping Cost:</td>
+                                        <td class="text-end">${{ payment.amount }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tax (10%):</td>
+                                        <td class="text-end">${{ payment.amount|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr class="table-active">
+                                        <td><strong>Total Amount:</strong></td>
+                                        <td class="text-end"><strong>${{ payment.amount|add:payment.amount|floatformat:2 }}</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h5>Select Payment Method</h5>
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="form-check card-option">
+                                <input class="form-check-input" type="radio" name="payment_method" id="online" value="online" checked>
+                                <label class="form-check-label card-label" for="online">
+                                    <div class="card text-center h-100">
+                                        <div class="card-body">
+                                            <div style="font-size: 2rem;">💳</div>
+                                            <h6>Online Payment</h6>
+                                            <p class="small text-muted">Pay with card or net banking</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-check card-option">
+                                <input class="form-check-input" type="radio" name="payment_method" id="card" value="card">
+                                <label class="form-check-label card-label" for="card">
+                                    <div class="card text-center h-100">
+                                        <div class="card-body">
+                                            <div style="font-size: 2rem;">💳</div>
+                                            <h6>Credit/Debit Card</h6>
+                                            <p class="small text-muted">Visa, MasterCard, etc.</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="form-check card-option">
+                                <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cash_on_delivery">
+                                <label class="form-check-label card-label" for="cod">
+                                    <div class="card text-center h-100">
+                                        <div class="card-body">
+                                            <div style="font-size: 2rem;">💰</div>
+                                            <h6>Cash on Delivery</h6>
+                                            <p class="small text-muted">Pay when parcel is delivered</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dummy Payment Details -->
+                    <div class="card mb-3" id="cardDetails" style="display: none;">
+                        <div class="card-header">
+                            <h6 class="mb-0">Card Details</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Card Number</label>
+                                    <input type="text" class="form-control" placeholder="1234 5678 9012 3456" value="4111 1111 1111 1111" readonly>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Expiry Date</label>
+                                    <input type="text" class="form-control" placeholder="MM/YY" value="12/30" readonly>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">CVV</label>
+                                    <input type="text" class="form-control" placeholder="123" value="123" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6>💡 Demo Payment System</h6>
+                        <p class="mb-0">This is a dummy payment system for demonstration. Clicking "Complete Payment" will simulate a successful transaction.</p>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'parcel_detail' parcel.pk %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-success">Complete Payment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cardRadios = document.querySelectorAll('input[name="payment_method"]');
+        const cardDetails = document.getElementById('cardDetails');
+        
+        function toggleCardDetails() {
+            const selectedValue = document.querySelector('input[name="payment_method"]:checked').value;
+            if (selectedValue === 'online' || selectedValue === 'card') {
+                cardDetails.style.display = 'block';
+            } else {
+                cardDetails.style.display = 'none';
+            }
+        }
+        
+        cardRadios.forEach(radio => {
+            radio.addEventListener('change', toggleCardDetails);
+        });
+        
+        toggleCardDetails();
+    });
+</script>
+
+<style>
+    .card-option .form-check-input {
+        display: none;
+    }
+    .card-option .form-check-input:checked + .card-label .card {
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px #667eea;
+    }
+    .card-label {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

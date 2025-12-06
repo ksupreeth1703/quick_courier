@@ -1,0 +1,129 @@
+{% extends 'courier_app/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">{{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.receiver_name.id_for_label }}" class="form-label">Receiver Name *</label>
+                            {{ form.receiver_name }}
+                            {% if form.receiver_name.errors %}
+                                <div class="text-danger">{{ form.receiver_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.receiver_phone.id_for_label }}" class="form-label">Receiver Phone *</label>
+                            {{ form.receiver_phone }}
+                            {% if form.receiver_phone.errors %}
+                                <div class="text-danger">{{ form.receiver_phone.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.receiver_address.id_for_label }}" class="form-label">Receiver Address *</label>
+                        {{ form.receiver_address }}
+                        {% if form.receiver_address.errors %}
+                            <div class="text-danger">{{ form.receiver_address.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="{{ form.parcel_type.id_for_label }}" class="form-label">Parcel Type *</label>
+                            {{ form.parcel_type }}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.weight.id_for_label }}" class="form-label">Weight (kg) *</label>
+                            {{ form.weight }}
+                            {% if form.weight.errors %}
+                                <div class="text-danger">{{ form.weight.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.dimensions.id_for_label }}" class="form-label">Dimensions (LxWxH in cm) *</label>
+                            {{ form.dimensions }}
+                            {% if form.dimensions.errors %}
+                                <div class="text-danger">{{ form.dimensions.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.parcel_image.id_for_label }}" class="form-label">Parcel Image *</label>
+                        {{ form.parcel_image }}
+                        {% if form.parcel_image.errors %}
+                            <div class="text-danger">{{ form.parcel_image.errors }}</div>
+                        {% endif %}
+                        <small class="form-text text-muted">Upload an image of your parcel for identification</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description *</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if form.status %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+                            {{ form.status }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.delivery_man.id_for_label }}" class="form-label">Delivery Man</label>
+                            {{ form.delivery_man }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">Save Parcel</button>
+                        <a href="{% if parcel %}{% url 'parcel_detail' parcel.pk %}{% else %}{% url 'dashboard' %}{% endif %}" 
+                           class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if not parcel %}
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6>📝 Parcel Information</h6>
+                <ul class="mb-0">
+                    <li>All fields marked with * are required</li>
+                    <li>Parcel image helps in identification during delivery</li>
+                    <li>Weight determines the shipping cost ($5 per kg)</li>
+                    <li>You'll be redirected to payment after creating the parcel</li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    input, select, textarea {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    textarea {
+        min-height: 100px;
+    }
+</style>
+{% endblock %}

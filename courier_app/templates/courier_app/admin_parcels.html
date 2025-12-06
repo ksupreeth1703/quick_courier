@@ -1,0 +1,58 @@
+{% extends 'courier_app/base.html' %}
+
+{% block title %}All Parcels{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">All Parcels</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Parcel Management</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Tracking #</th>
+                        <th>Sender</th>
+                        <th>Receiver</th>
+                        <th>Type</th>
+                        <th>Weight</th>
+                        <th>Status</th>
+                        <th>Delivery Man</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for parcel in parcels %}
+                    <tr>
+                        <td><strong>{{ parcel.tracking_number }}</strong></td>
+                        <td>{{ parcel.sender.username }}</td>
+                        <td>{{ parcel.receiver_name }}</td>
+                        <td>{{ parcel.get_parcel_type_display }}</td>
+                        <td>{{ parcel.weight }} kg</td>
+                        <td><span class="status-badge status-{{ parcel.status }}">{{ parcel.get_status_display }}</span></td>
+                        <td>
+                            {% if parcel.delivery_man %}
+                            {{ parcel.delivery_man.username }}
+                            {% else %}
+                            <span class="text-muted">Not assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ parcel.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'parcel_detail' parcel.pk %}" class="btn btn-sm btn-info">View</a>
+                            <a href="{% url 'update_parcel' parcel.pk %}" class="btn btn-sm btn-primary">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

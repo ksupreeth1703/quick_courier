@@ -1,0 +1,103 @@
+{% extends 'courier_app/base.html' %}
+
+{% block title %}My Parcels{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">My Parcels</h1>
+    {% if user.user_type == 'user' %}
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'create_parcel' %}" class="btn btn-primary">
+            <span data-feather="plus"></span> New Parcel
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Parcel List</h5>
+    </div>
+    <div class="card-body">
+        {% if parcels %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Tracking #</th>
+                        {% if user.user_type == 'admin' %}
+                        <th>Sender</th>
+                        {% endif %}
+                        <th>Receiver</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for parcel in parcels %}
+                    <tr>
+                        <td><strong>{{ parcel.tracking_number }}</strong></td>
+                        {% if user.user_type == 'admin' %}
+                        <td>{{ parcel.sender.username }}</td>
+                        {% endif %}
+                        <td>{{ parcel.receiver_name }}</td>
+                        <td>{{ parcel.get_parcel_type_display }}</td>
+                        <td><span class="status-badge status-{{ parcel.status }}">{{ parcel.get_status_display }}</span></td>
+                        <td>{{ parcel.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'parcel_detail' parcel.pk %}" class="btn btn-sm btn-info">View</a>
+                            {% if user.user_type == 'admin' or user == parcel.sender %}
+                            <a href="{% url 'update_parcel' parcel.pk %}" class="btn btn-sm btn-primary">Edit</a>
+                            {% endif %}
+                            
+                            {% if parcel.status == 'paid' and user.user_type == 'delivery' and not parcel.delivery_man %}
+                            <a href="{% url 'accept_parcel' parcel.pk %}" class="btn btn-sm btn-warning">Accept</a>
+                            {% endif %}
+                            
+                            {% if parcel.delivery_man == user and parcel.status == 'assigned' %}
+                            <a href="{% url 'mark_picked_up' parcel.pk %}" class="btn btn-sm btn-info">Pick Up</a>
+                            {% endif %}
+                            
+                            {% if parcel.delivery_man == user and parcel.status == 'picked_up' %}
+                            <a href="{% url 'mark_delivered' parcel.pk %}" class="btn btn-sm btn-success">Deliver</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div style="font-size: 4rem;">📦</div>
+            <h4 class="mt-3">No parcels found</h4>
+            <p class="text-muted">You haven't created or been assigned any parcels yet.</p>
+            {% if user.user_type == 'user' %}
+            <a href="{% url 'create_parcel' %}" class="btn btn-primary mt-2">Create Your First Parcel</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h6>Status Legend</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="status-badge status-pending">Pending</span>
+                    <span class="status-badge status-paid">Paid</span>
+                    <span class="status-badge status-assigned">Assigned</span>
+                    <span class="status-badge status-picked_up">Picked Up</span>
+                    <span class="status-badge status-in_transit">In Transit</span>
+                    <span class="status-badge status-delivered">Delivered</span>
+                    <span class="status-badge status-cancelled">Cancelled</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

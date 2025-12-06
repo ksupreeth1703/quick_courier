@@ -1,0 +1,361 @@
+{% extends 'courier_app/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        {% if user.user_type == 'user' %}
+        <a href="{% url 'create_parcel' %}" class="btn btn-primary">
+            <span data-feather="plus"></span> New Parcel
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if user.user_type == 'admin' %}
+<!-- Admin Dashboard -->
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Parcels</h6>
+                        <h2 class="mb-0">{{ total_parcels }}</h2>
+                    </div>
+                    <div>
+                        <span style="font-size: 2rem;">📦</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Users</h6>
+                        <h2 class="mb-0">{{ total_users }}</h2>
+                    </div>
+                    <div>
+                        <span style="font-size: 2rem;">👥</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Delivered</h6>
+                        <h2 class="mb-0">{{ delivered_parcels }}</h2>
+                    </div>
+                    <div>
+                        <span style="font-size: 2rem;">✅</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Pending</h6>
+                        <h2 class="mb-0">{{ pending_parcels }}</h2>
+                    </div>
+                    <div>
+                        <span style="font-size: 2rem;">⏳</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Parcels</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tracking #</th>
+                                <th>Sender</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for parcel in parcels %}
+                            <tr>
+                                <td><a href="{% url 'parcel_detail' parcel.pk %}">{{ parcel.tracking_number }}</a></td>
+                                <td>{{ parcel.sender.username }}</td>
+                                <td><span class="status-badge status-{{ parcel.status }}">{{ parcel.get_status_display }}</span></td>
+                                <td>{{ parcel.created_at|date:"M d" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Users</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Type</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.get_user_type_display }}</td>
+                                <td>{{ user.date_joined|date:"M d" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif user.user_type == 'delivery' %}
+<!-- Delivery Person Dashboard -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>My Assigned Parcels</h5>
+            </div>
+            <div class="card-body">
+                {% if assigned_parcels %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tracking #</th>
+                                <th>Sender</th>
+                                <th>Receiver</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for parcel in assigned_parcels %}
+                            <tr>
+                                <td><a href="{% url 'parcel_detail' parcel.pk %}">{{ parcel.tracking_number }}</a></td>
+                                <td>{{ parcel.sender.username }}</td>
+                                <td>{{ parcel.receiver_name }}</td>
+                                <td><span class="status-badge status-{{ parcel.status }}">{{ parcel.get_status_display }}</span></td>
+                                <td>
+                                    {% if parcel.status == 'assigned' %}
+                                    <a href="{% url 'mark_picked_up' parcel.pk %}" class="btn btn-sm btn-primary">Mark Picked Up</a>
+                                    {% elif parcel.status == 'picked_up' %}
+                                    <a href="{% url 'mark_delivered' parcel.pk %}" class="btn btn-sm btn-success">Mark Delivered</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted">No parcels assigned to you yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Available Parcels (Ready for Pickup)</h5> 
+            </div>
+            <div class="card-body">
+                {% if available_parcels %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tracking #</th>
+                                <th>Sender</th>
+                                <th>Receiver</th>
+                                <th>Address</th>
+                                <th>Created</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for parcel in available_parcels %}
+                            <tr>
+                                <td>{{ parcel.tracking_number }}</td>
+                                <td>{{ parcel.sender.username }}</td>
+                                <td>{{ parcel.receiver_name }}</td>
+                                <td>{{ parcel.receiver_address|truncatewords:5 }}</td>
+                                <td>{{ parcel.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'accept_parcel' parcel.pk %}" class="btn btn-sm btn-success">Accept Delivery</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted">No available parcels at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Normal User Dashboard -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>My Sent Parcels</h5>
+            </div>
+            <div class="card-body">
+                {% if sent_parcels %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tracking #</th>
+                                <th>Receiver</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for parcel in sent_parcels|slice:":5" %}
+                            <tr>
+                                <td><a href="{% url 'parcel_detail' parcel.pk %}">{{ parcel.tracking_number }}</a></td>
+                                <td>{{ parcel.receiver_name }}</td>
+                                <td><span class="status-badge status-{{ parcel.status }}">{{ parcel.get_status_display }}</span></td>
+                                <td>{{ parcel.created_at|date:"M d" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'parcel_list' %}" class="btn btn-outline-primary">View All Parcels</a>
+                </div>
+                {% else %}
+                <p class="text-center text-muted">You haven't sent any parcels yet.</p>
+                <div class="text-center mt-3">
+                    <a href="{% url 'create_parcel' %}" class="btn btn-primary">Send Your First Parcel</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Parcels for Me</h5>
+            </div>
+            <div class="card-body">
+                {% if received_parcels %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tracking #</th>
+                                <th>Sender</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for parcel in received_parcels|slice:":5" %}
+                            <tr>
+                                <td><a href="{% url 'parcel_detail' parcel.pk %}">{{ parcel.tracking_number }}</a></td>
+                                <td>{{ parcel.sender.username }}</td>
+                                <td><span class="status-badge status-{{ parcel.status }}">{{ parcel.get_status_display }}</span></td>
+                                <td>{{ parcel.created_at|date:"M d" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted">No parcels addressed to you.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'create_parcel' %}" class="btn btn-primary btn-lg w-100 py-3">
+                            <div style="font-size: 2rem;">📦</div>
+                            <div>Send Parcel</div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'parcel_list' %}" class="btn btn-info btn-lg w-100 py-3">
+                            <div style="font-size: 2rem;">📋</div>
+                            <div>My Parcels</div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'payment_list' %}" class="btn btn-success btn-lg w-100 py-3">
+                            <div style="font-size: 2rem;">💰</div>
+                            <div>Payments</div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'profile' %}" class="btn btn-warning btn-lg w-100 py-3">
+                            <div style="font-size: 2rem;">👤</div>
+                            <div>Profile</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
